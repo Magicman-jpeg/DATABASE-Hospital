@@ -1,61 +1,65 @@
 <!DOCTYPE html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Patients — MediCap</title>
-  <meta name="description" content="All patients and their admission status." />
+  <meta name="description" content="Search sample patient records and current admission status." />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = { darkMode: 'class', theme: { extend: {
-      colors: { brand: { indigo: '#6366f1', sky: '#06b6d4', violet: '#8b5cf6', teal: '#14b8a6', amber: '#f59e0b' } },
+    tailwind.config = { theme: { extend: {
+      colors: { brand: { indigo: '#005ea8', sky: '#005ea8', teal: '#147d64', amber: '#8a5700', red: '#b42318' } },
       fontFamily: {
-        sans: ['Inter','ui-sans-serif','system-ui','sans-serif'], mono: ['Fira Code','ui-monospace','monospace'],
-        display: ['"Playfair Display"','ui-serif','Georgia','serif'], grotesk: ['"Darker Grotesque"','Inter','sans-serif'],
+        sans: ['IBM Plex Sans','ui-sans-serif','system-ui','sans-serif'], mono: ['IBM Plex Mono','ui-monospace','monospace'],
+        display: ['IBM Plex Sans','ui-sans-serif','system-ui','sans-serif'], grotesk: ['IBM Plex Sans','ui-sans-serif','system-ui','sans-serif'],
       },
     } } };
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@600;700;800;900&family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <link href="css/style.css" rel="stylesheet" />
 </head>
 
-<body class="relative min-h-screen bg-slate-950 text-slate-200 antialiased">
-  <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-8">
-    <header class="mb-8">
-      <p class="font-mono text-xs text-brand-sky mb-1">RECORDS</p>
-      <h1 class="heading-grotesk text-5xl">Patients</h1>
+<body class="min-h-screen antialiased">
+  <main id="main-content" class="app-main">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Records / sample data</p>
+        <h1 class="page-title">Patients</h1>
+        <p class="page-intro">Search current and discharged demo records</p>
+      </div>
     </header>
 
-    <div class="flex flex-wrap items-center gap-3 mb-5">
-      <div class="relative flex-1 min-w-[220px]">
-        <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-        <input id="search" type="search" placeholder="Search by name…" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm focus:border-brand-sky" />
-      </div>
-      <select id="f-status" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-brand-sky">
-        <option value="">All statuses</option><option>Admitted</option><option>Discharged</option>
-      </select>
+    <div class="records-toolbar">
+      <label for="search" class="field-label">
+        Patient name
+        <span class="search-wrap">
+          <i class="ri-search-line" aria-hidden="true"></i>
+          <input id="search" type="search" placeholder="Search demo records…" class="field-control" />
+        </span>
+      </label>
+      <label for="f-status" class="field-label">
+        Admission status
+        <select id="f-status" class="field-control">
+          <option value="">All statuses</option><option>Admitted</option><option>Discharged</option>
+        </select>
+      </label>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur">
-      <table class="w-full text-sm">
-        <thead class="text-left text-slate-400 border-b border-slate-800">
+    <div class="table-shell">
+      <table class="data-table">
+        <caption class="sr-only">Demo patient records and current admission status</caption>
+        <thead>
           <tr>
-            <th class="px-4 py-3 font-medium">#</th>
-            <th class="px-4 py-3 font-medium">Name</th>
-            <th class="px-4 py-3 font-medium">Contact</th>
-            <th class="px-4 py-3 font-medium">Status</th>
-            <th class="px-4 py-3 font-medium">Current Room</th>
-            <th class="px-4 py-3 font-medium">Admissions</th>
-            <th class="px-4 py-3 font-medium text-right">Action</th>
+            <th>#</th><th>Name</th><th>Contact</th><th>Status</th><th>Current room</th><th>Admissions</th><th class="text-right">Action</th>
           </tr>
         </thead>
         <tbody id="rows"></tbody>
       </table>
-      <p id="empty" class="hidden text-slate-500 text-sm py-10 text-center">No patients match your search.</p>
+      <p id="empty" class="hidden empty-note py-10 text-center">No patients match your search.</p>
     </div>
   </main>
 

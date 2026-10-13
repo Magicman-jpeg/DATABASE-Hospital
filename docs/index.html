@@ -1,85 +1,96 @@
 <!DOCTYPE html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MediCap — Hospital Capacity Management</title>
-  <meta name="description" content="MediCap — a hospital room & bed capacity management system. Interactive front-end demo." />
+  <meta name="description" content="MediCap is an interactive hospital room, bed capacity, and admissions demo." />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = { darkMode: 'class', theme: { extend: {
-      colors: { brand: { indigo: '#6366f1', sky: '#06b6d4', violet: '#8b5cf6', teal: '#14b8a6', amber: '#f59e0b' } },
+    tailwind.config = { theme: { extend: {
+      colors: { brand: { indigo: '#005ea8', sky: '#005ea8', teal: '#147d64', amber: '#8a5700', red: '#b42318' } },
       fontFamily: {
-        sans: ['Inter','ui-sans-serif','system-ui','sans-serif'], mono: ['Fira Code','ui-monospace','monospace'],
-        display: ['"Playfair Display"','ui-serif','Georgia','serif'], grotesk: ['"Darker Grotesque"','Inter','sans-serif'],
+        sans: ['IBM Plex Sans','ui-sans-serif','system-ui','sans-serif'],
+        mono: ['IBM Plex Mono','ui-monospace','monospace'],
+        display: ['IBM Plex Sans','ui-sans-serif','system-ui','sans-serif'],
+        grotesk: ['IBM Plex Sans','ui-sans-serif','system-ui','sans-serif'],
       },
     } } };
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@600;700;800;900&family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <link href="css/style.css" rel="stylesheet" />
 </head>
 
-<body class="relative min-h-screen bg-slate-950 text-slate-200 antialiased flex flex-col">
-  <!-- nav + aurora injected by ui.js -->
+<body class="min-h-screen flex flex-col antialiased">
+  <!-- Primary navigation is injected by ui.js. -->
 
-  <main class="relative z-10 flex-1">
-    <!-- Hero -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-8 pt-20 pb-16 text-center">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-amber/30 bg-brand-amber/10 text-amber-200/90 text-xs font-medium mb-6">
-        <i class="ri-information-line"></i> Front-end demo · in-browser mock data
+  <main id="main-content" class="home-main flex-1">
+    <section class="home-hero" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow">Hospital operations / interactive demo</p>
+        <h1 id="hero-title" class="page-title">Know where the next patient can go.</h1>
+        <p class="hero-lede">
+          MediCap keeps room status, usable beds, admissions, and discharges in one clear operational view.
+          This public version uses sample records stored only in your browser tab.
+        </p>
+        <div class="hero-actions">
+          <a href="dashboard.html" class="button button--primary">
+            <i class="ri-dashboard-line" aria-hidden="true"></i> View current capacity
+          </a>
+          <a href="https://github.com/Magicman-jpeg/DATABASE-Hospital" target="_blank" rel="noopener" class="button button--secondary">
+            <i class="ri-github-fill" aria-hidden="true"></i> Review source
+          </a>
+        </div>
+        <p class="demo-disclosure"><span class="status-dot" aria-hidden="true"></span> Demo data · session-only · no real patient records</p>
       </div>
-      <h1 class="font-display text-5xl sm:text-7xl font-bold leading-[1.05] mb-5">
-        Hospital capacity,<br /><span class="text-brand-sky">in real time.</span>
-      </h1>
-      <p class="max-w-2xl mx-auto text-slate-400 text-lg mb-8">
-        MediCap tracks every ward, room, and bed like a smart parking garage — admissions fill beds,
-        rooms flip to <span class="text-red-400 font-medium">Full</span> at capacity, and discharges
-        reopen them automatically.
-      </p>
-      <div class="flex flex-wrap justify-center gap-4">
-        <a href="dashboard.html" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-indigo hover:bg-indigo-500 text-white font-medium shadow-lg shadow-brand-indigo/25 transition-all hover:-translate-y-0.5">
-          <i class="ri-dashboard-line"></i> Open Dashboard
-        </a>
-        <a href="https://github.com/Magicman-jpeg/DATABASE-Hospital" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-700 hover:border-brand-sky hover:text-brand-sky font-medium transition-all hover:-translate-y-0.5">
-          <i class="ri-github-fill"></i> View Source
-        </a>
-      </div>
+
+      <aside class="snapshot" aria-labelledby="snapshot-title">
+        <div class="snapshot-header">
+          <p id="snapshot-title" class="eyebrow">Current demo snapshot</p>
+          <span class="snapshot-meta">Session 01</span>
+        </div>
+        <div id="home-stats" class="snapshot-grid" aria-live="polite"></div>
+        <div class="snapshot-footer">
+          <span>Maintenance beds excluded</span>
+          <span>Open dashboard →</span>
+        </div>
+      </aside>
     </section>
 
-    <!-- Live mini-stats -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-8 pb-16">
-      <div id="home-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
-    </section>
-
-    <!-- Feature cards -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-8 pb-20">
-      <h2 class="heading-grotesk text-4xl mb-6">What it does</h2>
-      <div class="grid sm:grid-cols-3 gap-5">
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-6 card-enter">
-          <i class="ri-pulse-line text-3xl text-brand-sky mb-3"></i>
-          <h3 class="font-semibold text-lg mb-1">Live capacity grid</h3>
-          <p class="text-sm text-slate-400">Every room as a card with an occupancy gauge and color-coded status.</p>
-        </div>
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-6 card-enter" style="animation-delay:80ms">
-          <i class="ri-user-add-line text-3xl text-brand-indigo mb-3"></i>
-          <h3 class="font-semibold text-lg mb-1">Admit &amp; discharge</h3>
-          <p class="text-sm text-slate-400">Assign patients to available rooms; full rooms are automatically blocked.</p>
-        </div>
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-6 card-enter" style="animation-delay:160ms">
-          <i class="ri-file-list-3-line text-3xl text-brand-teal mb-3"></i>
-          <h3 class="font-semibold text-lg mb-1">Patients &amp; history</h3>
-          <p class="text-sm text-slate-400">Browse all patients and a full timeline of admissions and discharges.</p>
-        </div>
+    <section class="feature-section" aria-labelledby="workflow-title">
+      <div class="feature-heading">
+        <p class="eyebrow">One operating flow</p>
+        <h2 id="workflow-title" class="section-title">Capacity, placement, and history in one operating flow.</h2>
       </div>
+      <ol class="feature-list">
+        <li class="feature-row">
+          <span class="feature-number">01 / Capacity</span>
+          <h3>Read the hospital state</h3>
+          <p>Usable, occupied, and admittable beds are separated so maintenance capacity is never presented as available.</p>
+        </li>
+        <li class="feature-row">
+          <span class="feature-number">02 / Placement</span>
+          <h3>Admit with constraints</h3>
+          <p>Available rooms remain actionable while full and maintenance rooms explain why placement is blocked.</p>
+        </li>
+        <li class="feature-row">
+          <span class="feature-number">03 / Records</span>
+          <h3>Follow each transition</h3>
+          <p>Patient and admission views retain a simple record of active placements and completed discharges.</p>
+        </li>
+      </ol>
     </section>
   </main>
 
-  <footer class="relative z-10 border-t border-slate-800 py-6 text-center text-sm text-slate-500">
-    MediCap — Hospital Capacity Management · <a href="https://github.com/Magicman-jpeg/DATABASE-Hospital" class="hover:text-brand-sky">GitHub</a>
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <span>MediCap · Hospital capacity management demo</span>
+      <a href="https://github.com/Magicman-jpeg/DATABASE-Hospital">Source on GitHub</a>
+    </div>
   </footer>
 
   <script type="module">
@@ -88,18 +99,24 @@
     UI.mountChrome('home');
 
     const rooms = Store.roomsView();
-    const totalBeds = rooms.reduce((s, r) => s + r.max_capacity, 0);
-    const occupied  = rooms.reduce((s, r) => s + r.current_occupancy, 0);
+    const usableRooms = rooms.filter(room => room.status !== 'Maintenance');
+    const usableBeds = usableRooms.reduce((sum, room) => sum + room.max_capacity, 0);
+    const occupied = usableRooms.reduce((sum, room) => sum + room.current_occupancy, 0);
+    const admittable = usableRooms.reduce((sum, room) => sum + room.beds_available, 0);
     const tiles = [
-      { label: 'Total Beds', value: totalBeds, icon: 'ri-hotel-bed-line', color: 'text-brand-sky' },
-      { label: 'Occupied',   value: occupied, icon: 'ri-user-fill', color: 'text-brand-indigo' },
-      { label: 'Available',  value: totalBeds - occupied, icon: 'ri-door-open-line', color: 'text-emerald-400' },
-      { label: 'Rooms',      value: rooms.length, icon: 'ri-community-line', color: 'text-brand-teal' },
+      { label: 'Usable beds', value: usableBeds, tone: 'metric--blue' },
+      { label: 'Occupied', value: occupied, tone: '' },
+      { label: 'Admittable', value: admittable, tone: 'metric--green' },
+      { label: 'Rooms tracked', value: rooms.length, tone: '' },
     ];
-    document.getElementById('home-stats').innerHTML = tiles.map(t => `
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur p-4">
-        <div class="flex items-center justify-between"><span class="text-xs text-slate-400">${t.label}</span><i class="${t.icon} ${t.color} text-lg"></i></div>
-        <div class="heading-grotesk text-4xl mt-1 ${t.color}">${t.value}</div>
+
+    document.getElementById('home-stats').innerHTML = tiles.map((tile, index) => `
+      <div class="metric ${tile.tone}">
+        <div class="metric__top">
+          <p class="metric__label">${tile.label}</p>
+          <span class="metric__index">0${index + 1}</span>
+        </div>
+        <p class="metric__value">${tile.value}</p>
       </div>`).join('');
   </script>
 </body>
