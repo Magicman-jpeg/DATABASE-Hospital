@@ -67,9 +67,9 @@ CREATE TABLE admissions (
     ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
--- A patient can only have ONE active admission at a time.
--- (status is part of the key so multiple 'Discharged' rows are allowed.)
-CREATE UNIQUE INDEX uq_active_admission
+-- Prevent duplicate admission rows with the same patient and status.
+-- This composite index is not a partial active-only index.
+CREATE UNIQUE INDEX uq_patient_admission_status
   ON admissions (patient_id, status);
 
 CREATE INDEX idx_adm_room    ON admissions (room_id);

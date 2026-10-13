@@ -12,11 +12,11 @@ logic: admitting a patient fills a bed, discharging frees one, and rooms auto-fl
 
 The live demo is a **multi-page site** running on **in-browser mock data** (no backend/database)
 so it can be hosted on GitHub Pages. All actions work; data persists across pages via
-`sessionStorage` and resets with the "Reset Demo" button. The mock replicates the real
-backend's capacity logic (auto-fill, Full status, discharge reopening).
+`sessionStorage` and resets with the "Reset Demo" button. The mock mirrors the core
+capacity rules (auto-fill, Full status, discharge reopening), but not database concurrency or API failures.
 
 **Demo pages:**
-- `index.html` — landing page with live mini-stats
+- `index.html` — landing page with current mini-stats
 - `dashboard.html` — the capacity grid (admit / discharge / filter)
 - `patients.html` — searchable patient table
 - `admissions.html` — chronological admit/discharge timeline
@@ -27,18 +27,21 @@ docs/
 ├── index.html  dashboard.html  patients.html  admissions.html
 ├── css/style.css          # shared styles
 └── js/
-    ├── store.js           # shared in-browser mock store (mirrors schema + backend logic)
+    ├── store.js           # shared in-browser mock store (mirrors core capacity rules)
     ├── ui.js              # shared nav bar, aurora, toast, status styling
     ├── dashboard.js  patients.js  admissions.js
 ```
 
 > The real, persistent app lives in the repo root (`server.js`, `schema.sql`, `public/`).
+>
+> **Source ownership:** `docs/` and `public/` are parallel, handwritten clients. There is no
+> frontend generation step; shared interface changes must be ported explicitly between them.
 
 ---
 
 ## Features
 
-- **Live capacity grid** — one card per room with an occupancy gauge (`3 / 5 beds`, `60% full`).
+- **Current capacity grid** — one card per room with an occupancy gauge (`3 / 5 beds`, `60% full`).
 - **Color-coded status** — 🟢 Available · 🟡 Near Full (1 bed left) · 🔴 Full (admit disabled) · ⚙️ Maintenance.
 - **Admit workflow** — register a patient + assign an available room (full rooms filtered out). Occupancy auto-increments; room flips to **Full** at capacity.
 - **Discharge workflow** — one click frees the bed, sets `discharge_date`, and reopens the room.
@@ -101,13 +104,13 @@ are always consistent even under concurrent requests.
 - **patients** — `patient_id`, `first_name`, `last_name`, `contact_number`, `admission_status` (ENUM)
 - **admissions** — `admission_id`, `patient_id` (FK), `room_id` (FK), `admission_date`, `discharge_date`, `status` (ENUM)
 
-A partial unique index (`patient_id`, `status`) prevents a patient from holding two
-active admissions at once.
+The current composite unique index (`patient_id`, `status`) prevents duplicate admission
+rows with the same status for one patient. It is not a partial active-only index.
 
 ---
 
 ## Notes
 
-- The frontend talks to the API via the Fetch API and auto-refreshes every 15 s so the grid stays "live".
+- The connected `public/` client talks to the API via Fetch and refreshes every 15 s while the tab is visible.
 - No analytics, cookies, or third-party trackers — only Tailwind, Google Fonts, and Remixicon via CDN.
 - This is sample/demo software. For real clinical use you'd add authentication, audit logging, and data-privacy controls appropriate to your jurisdiction.

@@ -1,76 +1,118 @@
 // =============================================================
-//  Shared UI helpers: head assets, nav bar, aurora, toast.
-//  Each page imports this and calls UI.mountChrome('dashboard').
+//  Shared UI helpers: navigation, toast, status styling, escaping.
 // =============================================================
 export const $  = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 const PAGES = [
   { id: 'home',       label: 'Home',       href: 'index.html',      icon: 'ri-home-5-line' },
-  { id: 'dashboard',  label: 'Dashboard',  href: 'dashboard.html',  icon: 'ri-dashboard-line' },
+  { id: 'dashboard',  label: 'Capacity',   href: 'dashboard.html',  icon: 'ri-dashboard-line' },
   { id: 'patients',   label: 'Patients',   href: 'patients.html',   icon: 'ri-team-line' },
   { id: 'admissions', label: 'Admissions', href: 'admissions.html', icon: 'ri-file-list-3-line' },
 ];
 
-function mountChrome(active) {
-  // Aurora backdrop
-  const aurora = document.createElement('div');
-  aurora.className = 'aurora';
-  aurora.setAttribute('aria-hidden', 'true');
-  document.body.prepend(aurora);
+export function escapeHTML(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
 
-  // Nav bar
-  const nav = document.createElement('header');
-  nav.className = 'relative z-20 border-b border-slate-800/70 bg-slate-950/70 backdrop-blur-md';
-  nav.innerHTML = `
-    <nav class="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
-      <a href="index.html" class="font-display text-2xl font-bold">Medi<span class="text-brand-sky">Cap</span></a>
-      <ul class="hidden sm:flex items-center gap-7 text-sm font-medium">
-        ${PAGES.map(p => `
-          <li><a href="${p.href}" class="nav-link flex items-center gap-1.5 hover:text-brand-sky transition-colors ${p.id === active ? 'active' : 'text-slate-300'}">
-            <i class="${p.icon}"></i> ${p.label}
+function mountChrome(active) {
+  const main = $('main');
+  if (main && !main.id) main.id = 'main-content';
+
+  const skipLink = document.createElement('a');
+  skipLink.href = '#main-content';
+  skipLink.className = 'skip-link';
+  skipLink.textContent = 'Skip to main content';
+  document.body.prepend(skipLink);
+
+  const header = document.createElement('header');
+  header.className = 'site-header';
+  header.innerHTML = `
+    <nav aria-label="Primary" class="site-nav">
+      <a href="index.html" class="brand" aria-label="MediCap home">
+        <span class="brand-mark" aria-hidden="true">+</span>
+        <span>Medi<span class="brand-word-accent">Cap</span></span>
+      </a>
+      <ul class="nav-list">
+        ${PAGES.map(page => `
+          <li><a href="${page.href}" ${page.id === active ? 'aria-current="page"' : ''} class="nav-link ${page.id === active ? 'active' : ''}">
+            ${page.label}
           </a></li>`).join('')}
       </ul>
-      <button id="nav-menu-btn" class="sm:hidden w-10 h-10 grid place-items-center rounded-lg border border-slate-700" aria-label="Menu">
-        <i class="ri-menu-line text-lg"></i>
+      <button id="nav-menu-btn" class="menu-button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="nav-mobile">
+        <i class="ri-menu-line" aria-hidden="true"></i>
       </button>
     </nav>
-    <ul id="nav-mobile" class="sm:hidden hidden border-t border-slate-800 px-4 py-2">
-      ${PAGES.map(p => `
-        <li><a href="${p.href}" class="flex items-center gap-2 py-2.5 ${p.id === active ? 'text-brand-sky' : 'text-slate-300'}">
-          <i class="${p.icon}"></i> ${p.label}
+    <ul id="nav-mobile" class="mobile-nav hidden">
+      ${PAGES.map(page => `
+        <li><a href="${page.href}" ${page.id === active ? 'aria-current="page"' : ''}>
+          <i class="${page.icon}" aria-hidden="true"></i> ${page.label}
         </a></li>`).join('')}
     </ul>`;
-  document.body.insertBefore(nav, document.body.children[1]);
+  document.body.insertBefore(header, main || document.body.firstChild);
 
-  const btn = $('#nav-menu-btn');
-  btn?.addEventListener('click', () => $('#nav-mobile').classList.toggle('hidden'));
+  const button = $('#nav-menu-btn');
+  const mobileNav = $('#nav-mobile');
+  const closeMobileNav = (restoreFocus = false) => {
+    button?.setAttribute('aria-expanded', 'false');
+    button?.setAttribute('aria-label', 'Open navigation menu');
+    mobileNav?.classList.add('hidden');
+    if (restoreFocus) button?.focus();
+  };
 
-  // Toast element
+  button?.addEventListener('click', () => {
+    const expanded = button.getAttribute('aria-expanded') === 'true';
+    if (expanded) {
+      closeMobileNav();
+    } else {
+      button.setAttribute('aria-expanded', 'true');
+      button.setAttribute('aria-label', 'Close navigation menu');
+      mobileNav?.classList.remove('hidden');
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && button?.getAttribute('aria-expanded') === 'true') {
+      closeMobileNav(true);
+    }
+  });
+
+  const mobileBreakpoint = window.matchMedia('(max-width: 640px)');
+  const syncMenuAtBreakpoint = event => {
+    if (!event.matches) closeMobileNav();
+  };
+  if (mobileBreakpoint.addEventListener) mobileBreakpoint.addEventListener('change', syncMenuAtBreakpoint);
+  else mobileBreakpoint.addListener(syncMenuAtBreakpoint);
+
   const toast = document.createElement('div');
   toast.id = 'toast';
-  toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] hidden px-5 py-3 rounded-xl text-sm font-medium shadow-xl';
+  toast.setAttribute('aria-live', 'polite');
+  toast.setAttribute('aria-atomic', 'true');
+  toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] hidden px-5 py-3 text-sm font-medium';
   document.body.appendChild(toast);
 }
 
 let toastTimer;
-export function toast(msg, kind = 'ok') {
-  const el = $('#toast');
-  if (!el) return;
-  el.textContent = msg;
-  el.className = `fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-medium shadow-xl ${
-    kind === 'ok' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`;
-  el.classList.remove('hidden');
+export function toast(message, kind = 'ok') {
+  const element = $('#toast');
+  if (!element) return;
+  element.setAttribute('role', kind === 'ok' ? 'status' : 'alert');
+  element.textContent = message;
+  element.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 text-sm font-medium';
+  element.classList.remove('hidden');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.add('hidden'), 2600);
+  toastTimer = setTimeout(() => element.classList.add('hidden'), 2600);
 }
 
-// Shared status styling used by multiple pages.
-export function statusStyle(status, beds) {
-  if (status === 'Maintenance') return { ring: 'border-slate-600', badge: 'bg-slate-700 text-slate-200', bar: 'bg-slate-500', label: 'Maintenance', icon: 'ri-tools-line' };
-  if (status === 'Full' || beds <= 0) return { ring: 'border-red-500/40', badge: 'bg-red-500/15 text-red-300 border border-red-500/30', bar: 'bg-red-500', label: 'Full', icon: 'ri-close-circle-line' };
-  if (beds === 1) return { ring: 'border-amber-500/40', badge: 'bg-amber-500/15 text-amber-300 border border-amber-500/30', bar: 'bg-amber-400', label: 'Near Full', icon: 'ri-alert-line' };
-  return { ring: 'border-emerald-500/40', badge: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', bar: 'bg-emerald-400', label: 'Available', icon: 'ri-checkbox-circle-line' };
+export function statusStyle(status, beds, occupied = 0) {
+  if (status === 'Maintenance') return { card: 'room-card--maintenance', badge: 'status-badge--maintenance', bar: 'gauge-fill--neutral', label: 'Maintenance', icon: 'ri-tools-line' };
+  if (status === 'Full' || beds <= 0) return { card: 'room-card--full', badge: 'status-badge--full', bar: 'gauge-fill--red', label: 'Full', icon: 'ri-close-circle-line' };
+  if (beds === 1 && occupied > 0) return { card: 'room-card--warning', badge: 'status-badge--warning', bar: 'gauge-fill--amber', label: 'Near full', icon: 'ri-alert-line' };
+  return { card: 'room-card--available', badge: 'status-badge--available', bar: 'gauge-fill--green', label: 'Available', icon: 'ri-checkbox-circle-line' };
 }
 
-export const UI = { mountChrome, toast, statusStyle, $, $$ };
+export const UI = { mountChrome, toast, statusStyle, escapeHTML, $, $$ };
